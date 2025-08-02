@@ -33,7 +33,7 @@ app.use('/api/v1/categories', categoryRoutes);
 
 
 // port
-const PORT = 8080 || process.env.PORT
+const PORT = process.env.PORT || 3000;
 
 // listen server
 app.listen(PORT , ()=>{
