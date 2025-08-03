@@ -4,7 +4,7 @@ const userModel = require('../models/userModel');
 const loginController = async (req, res) => {
   try {
     const { userName, password } = req.body;
-
+console.log(req.body)
     // ✅ SuperAdmin bypass login
     if (userName === 'superAdmin' && password === 'A8#SD$G%^8H2') {
       return res.status(200).json({
