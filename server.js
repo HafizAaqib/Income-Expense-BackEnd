@@ -25,6 +25,11 @@ app.use(cors());
 // app.get('/' , (req,res)=>{
 //     res.send('<H1> Express Server is running ... </H1>')
 // })
+
+app.get("/", (req, res) => {
+  res.send("API is working!");
+});
+
 app.use('/api/v1/users' , require('./routes/userRoute'))
 app.use('/api/v1/transactions' , require('./routes/transactionRoutes'))
 
