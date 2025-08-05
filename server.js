@@ -4,6 +4,8 @@ const morgan = require('morgan');
 //const dotenv = require('dotenv');
 const colors = require('colors');
 //const connectDb = require('./config/connectDB');
+const mongoose = require('mongoose')
+
 
 // congig .env file
 //dotenv.config();
