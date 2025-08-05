@@ -1,12 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const dotenv = require('dotenv');
+//const dotenv = require('dotenv');
 const colors = require('colors');
 const connectDb = require('./config/connectDB');
 
 // congig .env file
-dotenv.config();
+//dotenv.config();
 
 // connsct db
 connectDb();
@@ -38,7 +38,8 @@ app.use('/api/v1/categories', categoryRoutes);
 
 
 // port
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
+const PORT =  3000;
 
 // listen server
 app.listen(PORT , ()=>{
