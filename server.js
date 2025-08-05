@@ -22,7 +22,7 @@ const connectDb = async () => {
         console.log(`${error}`.bgRed); // from colors
     }
 }
-
+connectDb();
 
 // rest object
 const app = express();
