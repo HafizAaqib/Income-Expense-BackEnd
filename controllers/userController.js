@@ -24,7 +24,7 @@ console.log(req.body)
     const user = await userModel.findOne({ userName, password });
 
     if (!user) {
-      return res.status(400).send('User Not Found');
+      return res.status(400).send('Login ID or Password is not correct');
     }
 
     res.status(200).json({
@@ -47,7 +47,7 @@ const createUser = async (req, res) => {
 
         const existingUser = await userModel.findOne({ userName });
         if (existingUser) {
-            return res.status(400).json({ success: false, message: 'Username already exists' });
+            return res.status(400).json({ success: false, message: 'Login ID already exists' });
         }
 
         const newUser = new userModel(req.body);
@@ -62,7 +62,7 @@ const createUser = async (req, res) => {
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
-                message: 'Username already exists',
+                message: 'Login ID already exists',
             });
         }
         res.status(400).json({

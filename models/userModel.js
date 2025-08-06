@@ -4,11 +4,11 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema({
         name: {
             type: String,
-            required: [true, 'Name is required.']
+            required: [true, 'User Name is required.']
         },
         userName: {
             type: String,
-            required: [true, 'User Name is required.'],
+            required: [true, 'Login ID is required.'],
             unique: true
         },
         isAdmin: {
