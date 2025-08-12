@@ -15,8 +15,8 @@ const mongoose = require('mongoose')
 const connectDb = async () => {
     try{
         // await mongoose.connect(process.env.MONGO_URL)
-        //await mongoose.connect("mongodb+srv://IncomeExpenseDB:EvWo53TuraTR5OJx@incomeexpensedb.tdhappz.mongodb.net/?retryWrites=true&w=majority&appName=IncomeExpenseDB")
-        await mongoose.connect("mongodb://127.0.0.1:27017/IncomeExpenseDB")
+        await mongoose.connect("mongodb+srv://IncomeExpenseDB:EvWo53TuraTR5OJx@incomeexpensedb.tdhappz.mongodb.net/?retryWrites=true&w=majority&appName=IncomeExpenseDB")
+        //await mongoose.connect("mongodb://127.0.0.1:27017/IncomeExpenseDB")
 
         console.log(`MongoDB connected : Server Running on ${mongoose.connection.host}`.bgCyan.white);
 
