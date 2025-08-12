@@ -3,23 +3,55 @@ const transactionModel = require('../models/transactionModel');
 // Create a new transaction
 const createTransaction = async (req, res) => {
   try {
+    req.body.receiptNumber = await generateReceiptNumber(req.body.type);
+
     const newTransaction = new transactionModel(req.body);
     await newTransaction.save();
+
     res.status(201).json({ success: true, transaction: newTransaction });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message || error });
   }
 };
 
+
+const generateReceiptNumber = async (type) => {
+  if (!['income', 'expense'].includes(type)) {
+    throw new Error('Invalid transaction type.');
+  }
+
+  const prefix = type === 'income' ? 'FH-00' : 'EX-0';
+  const startNumber = 1;
+
+  const lastTransaction = await transactionModel
+    .findOne({ type })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  let nextNumber;
+  if (!lastTransaction || !lastTransaction.receiptNumber) {
+    nextNumber = startNumber;
+  } else {
+    const lastNum = parseInt(lastTransaction.receiptNumber.replace(prefix, ''), 10);
+    nextNumber = lastNum + 1;
+  }
+
+  return prefix + nextNumber;
+};
+
+
+
 // ✅ Get all transactions (with optional filters)
 const getAllTransactions = async (req, res) => {
   try {
-    const { type, category, startDate, endDate, search } = req.query;
+    const { type, category, user, startDate, endDate, search } = req.query;
 
     const filter = {};
 
     if (type) filter.type = type;
     if (category) filter.category = category;
+    if (user) filter.user = user;
+    
     if (startDate || endDate) {
       filter.date = {};
       if (startDate) filter.date.$gte = new Date(startDate);
@@ -31,12 +63,13 @@ const getAllTransactions = async (req, res) => {
         { phoneNumber: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
         { reference: { $regex: search, $options: 'i' } },
+        { receiptNumber: { $regex: search, $options: 'i' } },
       ];
     }
     
-
     const transactions = await transactionModel.find(filter)
     .populate('category') // pulls category object with name
+    .populate('user') // pulls user object with name
     .sort({ date: -1 });
     res.status(200).json({ success: true, transactions });
   } catch (error) {
@@ -90,6 +123,7 @@ const getDashboardSummary = async (req, res) => {
 };
 
 // Update a transaction
+
 const updateTransaction = async (req, res) => {
   try {
     const updated = await transactionModel.findByIdAndUpdate(
@@ -105,6 +139,31 @@ const updateTransaction = async (req, res) => {
     res.status(400).json({ success: false, message: error.message || error });
   }
 };
+
+// Added it to handle when transaction type is changed by user , but there is no option for user to do it. so no need this function.
+// const updateTransaction = async (req, res) => {
+//   try {
+//     const existingTransaction = await transactionModel.findById(req.params.id);
+//     if (!existingTransaction) {
+//       return res.status(404).json({ success: false, message: 'Transaction not found' });
+//     }
+
+//     if (req.body.type && req.body.type !== existingTransaction.type) {
+//       req.body.receiptNumber = await generateReceiptNumber(req.body.type);
+//     }
+
+//     const updated = await transactionModel.findByIdAndUpdate(
+//       req.params.id,
+//       req.body,
+//       { new: true }
+//     );
+
+//     res.status(200).json({ success: true, transaction: updated });
+//   } catch (error) {
+//     res.status(400).json({ success: false, message: error.message || error });
+//   }
+// };
+
 
 // Delete a transaction
 const deleteTransaction = async (req, res) => {

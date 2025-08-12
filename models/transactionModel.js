@@ -7,14 +7,23 @@ const transactionSchema = new mongoose.Schema({
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category', // ✅ match your model name here
+        ref: 'Category', // ✅ match model name here
         required: [true, 'Category is required']
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'users', // ✅ match model name here
+        required: [true, 'User is required']
     },
     type: {
         type: String,
         enum: ['income', 'expense'],
         required: [true, 'Type is required'],
-        lowercase: true // optional: ensures consistency
+        lowercase: true 
+    },
+    receiptNumber: {
+        type: String,
+        trim: true
     },
     reference: {
         type: String,
