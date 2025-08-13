@@ -169,9 +169,6 @@ const updateTransaction = async (req, res) => {
 
 
 // Delete a transaction
-const transactionModel = require('../models/transactionModel');
-const cloudinary = require('cloudinary').v2;
-
 const deleteTransaction = async (req, res) => {
   try {
     // Find the transaction first (to get imagePublicIds)
