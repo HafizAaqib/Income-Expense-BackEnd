@@ -1,4 +1,7 @@
 const transactionModel = require('../models/transactionModel');
+// import cloudinary from "cloudinary";
+const cloudinary = require('cloudinary').v2;
+
 
 // Create a new transaction
 const createTransaction = async (req, res) => {
@@ -166,22 +169,99 @@ const updateTransaction = async (req, res) => {
 
 
 // Delete a transaction
+const transactionModel = require('../models/transactionModel');
+const cloudinary = require('cloudinary').v2;
+
 const deleteTransaction = async (req, res) => {
   try {
-    const deleted = await transactionModel.findByIdAndDelete(req.params.id);
-    if (!deleted) {
+    // Find the transaction first (to get imagePublicIds)
+    const transaction = await transactionModel.findById(req.params.id);
+    if (!transaction) {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
     }
-    res.status(200).json({ success: true, message: 'Transaction deleted' });
+
+    // If there are images, delete them from Cloudinary
+    if (transaction.imagePublicIds && transaction.imagePublicIds.trim() !== '') {
+      const publicIds = transaction.imagePublicIds.split(',').map(id => id.trim());
+
+      // Delete each image from Cloudinary (remove file extension)
+      await Promise.all(
+        publicIds.map(id => {
+          const withoutExt = id.substring(0, id.lastIndexOf('.')) || id; // removes .jpg, .png, etc.
+          return cloudinary.uploader.destroy(withoutExt);
+        })
+      );
+    }
+
+    // Now delete the transaction from DB
+    await transactionModel.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ success: true, message: 'Transaction and its images deleted successfully' });
+
   } catch (error) {
+    console.error('Delete Transaction Error:', error);
     res.status(500).json({ success: false, message: error.message || error });
   }
 };
+
+
+
+// const deleteTransaction = async (req, res) => {
+//   try {
+//   // Need to delete its images from cloudinary first.
+
+//     const deleted = await transactionModel.findByIdAndDelete(req.params.id);
+//     if (!deleted) {
+//       return res.status(404).json({ success: false, message: 'Transaction not found' });
+//     }
+//     res.status(200).json({ success: true, message: 'Transaction deleted' });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message || error });
+//   }
+// };
+
+
+cloudinary.config({
+    cloud_name: "drinjgbm5",
+    api_key: "448227896933795",
+    api_secret: "0r7c7F6w9l1ZTMN76zKmO57xc24"
+});
+
+const deleteTransactionImage = async (req, res) => {
+    try {
+        const { transactionId, publicId } = req.params;
+
+        // 1. Find the transaction
+        const transaction = await transactionModel.findById(transactionId);
+        if (!transaction) {
+            return res.status(404).json({ success: false, message: "Transaction not found" });
+        }
+
+        // 2. Remove from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+
+        // 3. Remove publicId from DB list
+        const updatedImagePublicIds = transaction.imagePublicIds
+            .split(',')
+            .filter(id => id.trim() !== publicId)
+            .join(',');
+
+        transaction.imagePublicIds = updatedImagePublicIds;
+        await transaction.save();
+
+        res.json({ success: true, message: "Image deleted successfully", updatedImagePublicIds });
+    } catch (error) {
+        console.error("Error deleting transaction image:", error);
+        res.status(500).json({ success: false, message: "Failed to delete image" });
+    }
+};
+
 
 module.exports = {
   createTransaction,
   getAllTransactions,
   updateTransaction,
   deleteTransaction,
-  getDashboardSummary 
+  getDashboardSummary,
+  deleteTransactionImage 
 };

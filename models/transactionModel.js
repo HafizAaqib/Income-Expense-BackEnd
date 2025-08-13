@@ -41,6 +41,11 @@ const transactionSchema = new mongoose.Schema({
     date: {
         type: Date,
         required: [true, 'Date is required']
+    },
+    imagePublicIds: { 
+        type: String, // comma-separated, e.g. "abc123.jpg,def456.png"
+        trim: true,
+        default: ""
     }
 }, { timestamps: true });
 

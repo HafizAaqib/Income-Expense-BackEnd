@@ -4,7 +4,8 @@ const {
   getAllTransactions,
   updateTransaction,
   deleteTransaction,
-  getDashboardSummary
+  getDashboardSummary,
+  deleteTransactionImage
 } = require('../controllers/transactionController');
 
 const router = express.Router();
@@ -22,5 +23,7 @@ router.put('/:id', updateTransaction);
 
 // DELETE /api/v1/transactions/:id
 router.delete('/:id', deleteTransaction);
+
+router.delete("/:transactionId/image/:publicId", deleteTransactionImage);
 
 module.exports = router;
