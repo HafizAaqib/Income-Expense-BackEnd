@@ -13,12 +13,12 @@ const transactionSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users', // ✅ match model name here
-        required: [true, 'User is required']
+//        required: [true, 'User is required']
     },
     type: {
         type: String,
         enum: ['income', 'expense'],
-        required: [true, 'Type is required'],
+        // required: [true, 'Type is required'],
         lowercase: true 
     },
     receiptNumber: {
