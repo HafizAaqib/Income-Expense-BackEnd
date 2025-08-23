@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const transactionSchema = new mongoose.Schema({
     amount: {
         type: Number,
+        default: 0,
         required: [true, 'Amount is required.']
     },
     category: {
@@ -17,7 +18,7 @@ const transactionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['income', 'expense'],
+        enum: ['income', 'expense' , 'asset'],
         // required: [true, 'Type is required'],
         lowercase: true 
     },

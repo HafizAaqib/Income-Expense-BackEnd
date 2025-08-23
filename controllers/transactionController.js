@@ -19,11 +19,11 @@ const createTransaction = async (req, res) => {
 
 
 const generateReceiptNumber = async (type) => {
-  if (!['income', 'expense'].includes(type)) {
+  if (!['income', 'expense' , 'asset'].includes(type)) {
     throw new Error('Invalid transaction type.');
   }
 
-  const prefix = type === 'income' ? 'FH-00' : 'EX-0';
+  const prefix = type === 'income' ? 'FH-00' : (type === 'expense' ? 'EX-0' : 'AS-');
   const startNumber = 1;
 
   const lastTransaction = await transactionModel
@@ -80,6 +80,53 @@ const getAllTransactions = async (req, res) => {
   }
 };
 
+// const getDashboardSummary = async (req, res) => {
+//   try {
+//     const { month, year } = req.query;
+//     const selectedMonth = parseInt(month);
+//     const selectedYear = parseInt(year);
+
+//     const startDate = new Date(selectedYear, selectedMonth - 1, 1);
+//     const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
+
+//     const allTransactions = await transactionModel.find({
+//       date: { $gte: startDate, $lte: endDate }
+//     }).populate('category');
+
+//     const income = allTransactions.filter(t => t.type === 'income');
+//     const expense = allTransactions.filter(t => t.type === 'expense');
+
+//     const incomeTotal = income.reduce((sum, t) => sum + t.amount, 0);
+//     const expenseTotal = expense.reduce((sum, t) => sum + t.amount, 0);
+//     const balance = incomeTotal - expenseTotal;
+
+//     const getCategoryTotals = (transactions) => {
+//       const categoryMap = {};
+//       for (const t of transactions) {
+//         const cat = t.category?.name || '';
+//         categoryMap[cat] = (categoryMap[cat] || 0) + t.amount;
+//       }
+//       return Object.entries(categoryMap).map(([name, amount]) => ({ name, amount }));
+//     };
+
+//     const incomeByCategory = getCategoryTotals(income);
+//     const expenseByCategory = getCategoryTotals(expense);
+
+//     res.json({
+//       success: true,
+//       data: {
+//         summary: { incomeTotal, expenseTotal, balance },
+//         incomeByCategory,
+//         expenseByCategory
+//       }
+//     });
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// Update a transaction
+
 const getDashboardSummary = async (req, res) => {
   try {
     const { month, year } = req.query;
@@ -89,21 +136,25 @@ const getDashboardSummary = async (req, res) => {
     const startDate = new Date(selectedYear, selectedMonth - 1, 1);
     const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
+    // ✅ fetch transactions with category populated
     const allTransactions = await transactionModel.find({
       date: { $gte: startDate, $lte: endDate }
     }).populate('category');
 
+    // ✅ separate by type
     const income = allTransactions.filter(t => t.type === 'income');
     const expense = allTransactions.filter(t => t.type === 'expense');
 
+    // ✅ totals
     const incomeTotal = income.reduce((sum, t) => sum + t.amount, 0);
     const expenseTotal = expense.reduce((sum, t) => sum + t.amount, 0);
     const balance = incomeTotal - expenseTotal;
 
+    // ✅ category totals
     const getCategoryTotals = (transactions) => {
       const categoryMap = {};
       for (const t of transactions) {
-        const cat = t.category?.name || 'Unknown';
+        const cat = t.category?.name || '';
         categoryMap[cat] = (categoryMap[cat] || 0) + t.amount;
       }
       return Object.entries(categoryMap).map(([name, amount]) => ({ name, amount }));
@@ -112,20 +163,50 @@ const getDashboardSummary = async (req, res) => {
     const incomeByCategory = getCategoryTotals(income);
     const expenseByCategory = getCategoryTotals(expense);
 
+    // ✅ top income & expense entries by amount
+    const topIncome = [...income]
+      .sort((a, b) => b.amount - a.amount)   // sort desc by amount
+      .slice(0, 10)                           // top 5
+      .map(t => ({
+        receiptNumber: t.receiptNumber,
+        reference: t.reference,   // donor name / expense name
+        phoneNumber: t.phoneNumber,
+        amount: t.amount,
+        category: t.category?.name || '',
+        date: t.date,
+        description: t.description
+      }));
+
+    const topExpense = [...expense]
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 10)
+      .map(t => ({
+        receiptNumber: t.receiptNumber,
+        reference: t.reference,
+        phoneNumber: t.phoneNumber,
+        amount: t.amount,
+        category: t.category?.name || '',
+        date: t.date,
+        description: t.description
+      }));
+
     res.json({
       success: true,
       data: {
         summary: { incomeTotal, expenseTotal, balance },
         incomeByCategory,
-        expenseByCategory
+        expenseByCategory,
+        topIncome,
+        topExpense
       }
     });
+
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Update a transaction
+
 
 const updateTransaction = async (req, res) => {
   try {

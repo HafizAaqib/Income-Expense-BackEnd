@@ -15,6 +15,18 @@ const userSchema = new mongoose.Schema({
             type: Boolean,
             required: [true, 'Is Admin ?.']
         },
+        canViewOtherUsersData: {
+            type: Boolean,
+            default: false
+        },
+        canAddData: {
+            type: Boolean,
+            default: false
+        },
+        canUpdateData: {
+            type: Boolean,
+            default: false
+        },
         password: {
             type: String,
             required: [true, 'password is required.']
