@@ -164,7 +164,8 @@ const cloudinaryConfigMap =
 // Middleware to attach correct db + models
 app.use(async (req, res, next) => {
   try {
-    const hostname = req.hostname.split(".")[0]; // e.g. faizanehajveri from faizanehajveri.web.app
+    const hostname = req.headers['x-client'];
+    //const hostname = req.hostname.split(".")[0]; // e.g. faizanehajveri from faizanehajveri.web.app
     console.log('hostname' , hostname);
     const dbUri = clientDbMap[hostname] || clientDbMap["localhost"]; // fallback
 
