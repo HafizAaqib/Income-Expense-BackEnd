@@ -28,10 +28,12 @@ app.use(morgan('dev'));
 app.use(express.json());
 // app.use(cors());
 app.use(cors({
-  origin: "*", // or your frontend domain
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-client"],
+  exposedHeaders: ["x-client"], // not strictly needed but safe
 }));
+app.options("*", cors());
 
 // --- Dynamic DB Connection Middleware ---
 const connections = {}; // cache to reuse DB connections
@@ -168,7 +170,7 @@ const cloudinaryConfigMap =
 // Middleware to attach correct db + models
 app.use(async (req, res, next) => {
   try {
-    const hostname = req.headers['x-client'];
+    const hostname = req.headers['x-client'] || req.headers['X-Client'];
     //const hostname = req.hostname.split(".")[0]; // e.g. faizanehajveri from faizanehajveri.web.app
     console.log('hostname' , hostname);
     const dbUri = clientDbMap[hostname] || clientDbMap["localhost"]; // fallback
