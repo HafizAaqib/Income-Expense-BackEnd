@@ -33,7 +33,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "x-client"],
   exposedHeaders: ["x-client"], // not strictly needed but safe
 }));
-app.options("*", cors());
+//app.options("*", cors());
 
 // --- Dynamic DB Connection Middleware ---
 const connections = {}; // cache to reuse DB connections
