@@ -165,6 +165,7 @@ const cloudinaryConfigMap =
 app.use(async (req, res, next) => {
   try {
     const hostname = req.hostname.split(".")[0]; // e.g. faizanehajveri from faizanehajveri.web.app
+    console.log('hostname' , hostname);
     const dbUri = clientDbMap[hostname] || clientDbMap["localhost"]; // fallback
 
     if (!connections[dbUri]) {
