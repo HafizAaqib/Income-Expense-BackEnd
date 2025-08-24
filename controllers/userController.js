@@ -1,4 +1,4 @@
-const userModel = require('../models/userModel');
+//const userModel = require('../models/userModel');
 
 // Login
 const loginController = async (req, res) => {
@@ -21,7 +21,7 @@ console.log(req.body)
     }
 
     // ✅ Normal login from DB
-    const user = await userModel.findOne({ userName, password });
+    const user = await req.db.userModel.findOne({ userName, password });
 
     if (!user) {
       return res.status(400).send('Login ID or Password is not correct');
@@ -45,12 +45,12 @@ const createUser = async (req, res) => {
     try {
         const { userName } = req.body;
 
-        const existingUser = await userModel.findOne({ userName });
+        const existingUser = await req.db.userModel.findOne({ userName });
         if (existingUser) {
             return res.status(400).json({ success: false, message: 'Login ID already exists' });
         }
 
-        const newUser = new userModel(req.body);
+        const newUser = new req.db.userModel(req.body);
         await newUser.save();
         console.log("Saved user:", newUser);
 
@@ -75,7 +75,7 @@ const createUser = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
     try {
-        const users = await userModel.find().sort({ createdAt: -1 });
+        const users = await req.db.userModel.find().sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             users
@@ -94,12 +94,12 @@ const updateUser = async (req, res) => {
         const userId = req.params.id;
         const updates = req.body;
 
-        const user = await userModel.findById(userId);
+        const user = await req.db.userModel.findById(userId);
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        const adminCount = await userModel.countDocuments({ isAdmin: true });
+        const adminCount = await req.db.userModel.countDocuments({ isAdmin: true });
 
         // Check if the last admin is being demoted
         if (user.isAdmin && updates.isAdmin === false && adminCount === 1) {
@@ -109,7 +109,7 @@ const updateUser = async (req, res) => {
             });
         }
 
-        const updatedUser = await userModel.findByIdAndUpdate(userId, updates, { new: true });
+        const updatedUser = await req.db.userModel.findByIdAndUpdate(userId, updates, { new: true });
         res.status(200).json({
             success: true,
             user: updatedUser
@@ -126,14 +126,14 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const user = await userModel.findById(userId);
+        const user = await req.db.userModel.findById(userId);
 
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
         if (user.isAdmin) {
-            const adminCount = await userModel.countDocuments({ isAdmin: true });
+            const adminCount = await req.db.userModel.countDocuments({ isAdmin: true });
             if (adminCount === 1) {
                 return res.status(400).json({
                     success: false,
@@ -142,7 +142,7 @@ const deleteUser = async (req, res) => {
             }
         }
 
-        await userModel.findByIdAndDelete(userId);
+        await req.db.userModel.findByIdAndDelete(userId);
         res.status(200).json({
             success: true,
             message: 'User deleted successfully'

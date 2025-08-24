@@ -1,6 +1,6 @@
 
-const Category = require('../models/categoryModel');
-const Transaction = require('../models/transactionModel');
+//const Category = require('../models/categoryModel');
+//const Transaction = require('../models/transactionModel');
 
 // Create
 const createCategory = async (req, res) => {
@@ -10,7 +10,7 @@ const createCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name and type are required' });
     }
 
-    const newCategory = new Category({ name, type });
+    const newCategory = new req.db.Category({ name, type });
     await newCategory.save();
     res.status(201).json({ success: true, category: newCategory });
   } catch (error) {
@@ -23,7 +23,7 @@ const getAllCategories = async (req, res) => {
   try {
     const { type } = req.query;
     const filter = type ? { type } : {};
-    const categories = await Category.find(filter).sort({ createdAt: -1 });
+    const categories = await req.db.Category.find(filter).sort({ createdAt: -1 });
     res.status(200).json({ success: true, categories });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -40,7 +40,7 @@ const updateCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name is required' });
     }
 
-    const updated = await Category.findByIdAndUpdate(id, { name }, { new: true });
+    const updated = await req.db.Category.findByIdAndUpdate(id, { name }, { new: true });
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Category not found' });
     }
@@ -57,7 +57,7 @@ const deleteCategory = async (req, res) => {
     const { id } = req.params;
 
     // 🔒 Check if the category is used in any transaction
-    const isUsed = await Transaction.exists({ category: id });
+    const isUsed = await req.db.trandactionModel.exists({ category: id });
     if (isUsed) {
       return res.status(400).json({
         success: false,
@@ -65,7 +65,7 @@ const deleteCategory = async (req, res) => {
       });
     }
 
-    const deleted = await Category.findByIdAndDelete(id);
+    const deleted = await req.db.Category.findByIdAndDelete(id);
     if (!deleted) {
       return res.status(404).json({ success: false, message: 'Category not found' });
     }
