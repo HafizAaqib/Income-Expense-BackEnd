@@ -26,8 +26,12 @@ const app = express();
 // middlewares
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(cors());
-
+// app.use(cors());
+app.use(cors({
+  origin: "*", // or your frontend domain
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-client"],
+}));
 
 // --- Dynamic DB Connection Middleware ---
 const connections = {}; // cache to reuse DB connections
