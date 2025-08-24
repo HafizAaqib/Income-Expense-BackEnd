@@ -151,7 +151,7 @@ function getModels(conn) {
 const clientDbMap = {
   faizanehajveri: "mongodb+srv://IncomeExpenseDB:EvWo53TuraTR5OJx@incomeexpensedb.tdhappz.mongodb.net/?retryWrites=true&w=majority&appName=IncomeExpenseDB",
   localhost: "mongodb://127.0.0.1:27017/IncomeExpenseDB",
-  jamiarabbani: "mongodb+srv://IncomeExpenseDB:EvWo53TuraTR5OJx@incomeexpensedb.tdhappz.mongodb.net/?retryWrites=true&w=majority&appName=IncomeExpenseDB",
+  jamiarabbani: "mongodb+srv://hafizaqib0207:rG16WD22xCNCjDPn@incomeexpenseappdb.jpg1omj.mongodb.net/?retryWrites=true&w=majority&appName=IncomeExpenseAppDB",
 };
 const cloudinaryConfigMap = 
 {
