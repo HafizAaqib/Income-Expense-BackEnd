@@ -173,7 +173,7 @@ app.use(async (req, res, next) => {
     const hostname = req.headers['x-client'] || req.headers['X-Client'];
     //const hostname = req.hostname.split(".")[0]; // e.g. faizanehajveri from faizanehajveri.web.app
     console.log('hostname' , hostname);
-    const dbUri = clientDbMap[hostname] || clientDbMap["localhost"]; // fallback
+    const dbUri = clientDbMap[hostname]; // || clientDbMap["localhost"]; // fallback
 
     if (!connections[dbUri]) {
       console.log(`🔗 New DB connection for ${hostname} (${dbUri})`);
@@ -183,7 +183,7 @@ app.use(async (req, res, next) => {
 
     req.db = connections[dbUri].models; // attach models to request
     //req.hostname = hostname; // i think not needed in controllers
-    req.cloudinaryConfig = cloudinaryConfigMap[hostname] || cloudinaryConfigMap["localhost"]; // fallback
+    req.cloudinaryConfig = cloudinaryConfigMap[hostname]; // || cloudinaryConfigMap["localhost"]; // fallback
     next();
   } catch (err) {
     console.error("DB connection error:", err);
