@@ -57,7 +57,7 @@ const deleteCategory = async (req, res) => {
     const { id } = req.params;
 
     // 🔒 Check if the category is used in any transaction
-    const isUsed = await req.db.trandactionModel.exists({ category: id });
+    const isUsed = await req.db.transactionModel.exists({ category: id });
     if (isUsed) {
       return res.status(400).json({
         success: false,
