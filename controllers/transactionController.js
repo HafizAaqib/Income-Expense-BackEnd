@@ -5,19 +5,20 @@ const cloudinary = require('cloudinary').v2;
 // Create a new transaction
 const createTransaction = async (req, res) => {
   try {
-    req.body.receiptNumber = await generateReceiptNumber(req.body.type);
+    req.body.receiptNumber = await generateReceiptNumber(req.body.type , req);
 
     const newTransaction = new req.db.transactionModel(req.body);
     await newTransaction.save();
 
     res.status(201).json({ success: true, transaction: newTransaction });
   } catch (error) {
+    console.log('error' , error);
     res.status(400).json({ success: false, message: error.message || error });
   }
 };
 
 
-const generateReceiptNumber = async (type) => {
+const generateReceiptNumber = async (type , req) => {
   if (!['income', 'expense' , 'asset'].includes(type)) {
     throw new Error('Invalid transaction type.');
   }
