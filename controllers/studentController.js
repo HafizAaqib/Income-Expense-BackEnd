@@ -45,7 +45,7 @@ const getAllStudents = async (req, res) => {
       }
     }
 
-    const students = await req.db.Student.find(filter).sort({ name: 1 });
+    const students = await req.db.Student.find(filter).populate('class').sort({ name: 1 });
     res.status(200).json({ success: true, students });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

@@ -45,7 +45,7 @@ const getAllStaff = async (req, res) => {
       }
     }
 
-    const staff = await req.db.Staff.find(filter).sort({ name: 1 });
+    const staff = await req.db.Staff.find(filter).populate('designation').sort({ name: 1 });
     res.status(200).json({ success: true, staff });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

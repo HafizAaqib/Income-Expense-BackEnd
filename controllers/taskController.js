@@ -1,15 +1,16 @@
 
-//const Task = require('../models/taskModel');
-//const Transaction = require('../models/transactionModel');
-
-// Create
 // Create
 const createTask = async (req, res) => {
   try {
-    const { name, type, entity, status } = req.body;
+    const { name, type, entity, status, categories } = req.body;
     if (!name || !type) return res.status(400).json({ success: false, message: 'Name and type are required' });
 
-    const newTask = new req.db.Task({ name, type, status: status || 1 });
+    const newTask = new req.db.Task({ 
+      name, 
+      type, 
+      status: status || 1,
+      categories: categories || [] // Added categories
+    });
 
     if (entity) newTask.entity = entity;
 
@@ -29,14 +30,14 @@ const getAllTasks = async (req, res) => {
 
     if (type) filter.type = type;
     if (entity) {
-  filter.$or = [{ entity: Number(entity) }];
+      filter.$or = [{ entity: Number(entity) }];
 
-  if (Number(entity) === 1) {
+      if (Number(entity) === 1) {
     filter.$or.push({ entity: null });
   }
-}
+    }
 
-    const tasks = await req.db.Task.find(filter).sort({ name: 1 });
+    const tasks = await req.db.Task.find(filter).populate('categories').sort({ name: 1 });
     res.status(200).json({ success: true, tasks });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -46,14 +47,15 @@ const getAllTasks = async (req, res) => {
 // Update
 const updateTask = async (req, res) => {
   try {
-    const { name, status } = req.body;
+    const { name, status, categories } = req.body;
     const { id } = req.params;
 
     if (!name && !status) return res.status(400).json({ success: false, message: 'Name or status is required' });
 
     const updateObj = {};
     if (name) updateObj.name = name;
-    if (status) updateObj.status = status;
+    if (status !== undefined) updateObj.status = status;
+    if (categories) updateObj.categories = categories; // Added categories
 
     const updated = await req.db.Task.findByIdAndUpdate(id, updateObj, { new: true });
     if (!updated) return res.status(404).json({ success: false, message: 'Task not found' });

@@ -116,7 +116,7 @@ function getModels(conn) {
           },
           type: {
             type: String,
-            enum: ['income', 'expense', 'asset'],
+            enum: ['income', 'expense', 'asset', 'staff', 'student'],
             required: [true, 'Category type is required'],
           },
           entity: {
@@ -144,6 +144,7 @@ function getModels(conn) {
             type: String,
             trim: true,
           },
+          class: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
           contact: {
             type: String,
             trim: true,
@@ -170,6 +171,7 @@ function getModels(conn) {
           dateOfLeave: {
             type: Date,
           },
+          otherDetails: { type: String, trim: true },
           entity: {
             type: Number,
           },
@@ -231,6 +233,10 @@ function getModels(conn) {
           entity: {
             type: Number,
           },
+          categories: [{  // For Staff Designations / Student Classes
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'Category' 
+          }],
           status: {
             type: Number,
             enum: [1, 2, 3],
@@ -305,7 +311,7 @@ function getModels(conn) {
         name: { type: String, required: true, trim: true },
         fatherName: { type: String },
         contact: { type: String },
-        designation: { type: String }, // e.g. Teacher, Clerk, Imam, etc.
+        designation: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
         salary: { type: Number, required: true },
         status: {
           type: String,
@@ -315,6 +321,7 @@ function getModels(conn) {
         joiningDate: { type: Date },
         dateOfLeave: { type: Date },
         entity: { type: Number },
+        otherDetails: { type: String, trim: true },
         imagePublicIds: {
           type: String, // comma-separated, e.g. "abc123.jpg,def456.png"
           trim: true,
@@ -468,7 +475,43 @@ function getModels(conn) {
           entity: { type: Number },                           
         }
       )
-    )
+    ),
+
+    ProductCategory: conn.model(
+      "ProductCategory",
+      new mongoose.Schema(
+        {
+          name: {
+            type: String,
+            required: [true, 'Category name is required'],
+            trim: true,
+          },
+          level: {
+            type: Number,
+            enum: [1, 2, 3], // 1: Root, 2: Sub, 3: Leaf (Products belong here)
+            required: true,
+          },
+          parentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ProductCategory',
+            default: null,
+          },
+          entity: {
+            type: Number,
+          },
+          status: {
+            type: Number,
+            enum: [1, 2, 3], // 1: Active, 2: Hidden, 3: Locked
+            default: 1,
+          },
+          imagePublicIds: {
+            type: String, // Cloudinary IDs
+            trim: true,
+          }
+        },
+        { timestamps: true }
+      )
+    ),
 
 
     // Later: add Category, Transaction, etc. here
@@ -534,6 +577,7 @@ app.use("/api/v1/staff", require('./routes/staffRoutes'));
 app.use("/api/v1/staff-salaries", require('./routes/staffSalaryRoutes'));
 app.use('/api/v1/grave-reservations', require('./routes/graveReservationRoutes'));
 app.use("/api/v1/attendance", require('./routes/attendanceRoutes'));
+app.use("/api/v1/product-categories", require('./routes/productCategoryRoutes'));
 
 // port
 const PORT = 3000;

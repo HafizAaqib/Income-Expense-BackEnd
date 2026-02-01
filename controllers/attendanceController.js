@@ -98,7 +98,7 @@ const markAttendanceAndTasks = async (req, res) => {
 // ----------------------------------------------------------------------
 const getDailyRecords = async (req, res) => {
     try {
-        const { date, entityType, entity: entityId } = req.query; 
+        const { date, entityType, entity: entityId, category } = req.query;        
         
         if (!date || !entityType) {
             return res.status(400).json({ success: false, message: "Date and entityType are required." });
@@ -116,8 +116,10 @@ const getDailyRecords = async (req, res) => {
         
         if (entityType === "Student") {
             PersonModel = db.Student;
+            if (category) personFilter.class = category; 
         } else if (entityType === "Staff") {
             PersonModel = db.Staff;
+            if (category) personFilter.designation = category; 
         } else {
             return res.status(400).json({ success: false, message: "Invalid entityType." });
         }
@@ -185,15 +187,22 @@ const getDailyRecords = async (req, res) => {
 // ----------------------------------------------------------------------
 const getAllTasks = async (req, res) => {
     try {
-        const { entityType } = req.query; //  'student' or 'staff'
+        const { entityType, category } = req.query; 
         if (!entityType) {
             return res.status(400).json({ success: false, message: "entityType is required." });
         }
         
         const db = req.db;
         // Filter tasks for the entityType ('student' or 'staff') and status 1 (Active)
-        const tasks = await db.Task.find({ type: entityType.toLowerCase(), status: 1 }).sort({ name: 1 });
+
+        let filter = { type: entityType.toLowerCase(), status: 1 };
         
+        // If a specific category (Class/Designation) is selected, filter tasks
+        if (category) {
+            filter.categories = { $in: [category] };
+        }
+
+        const tasks = await db.Task.find(filter).sort({ name: 1 });
         res.status(200).json({ success: true, tasks: tasks.map(t => ({ taskId: t._id, name: t.name })) });
 
     } catch (error) {
@@ -222,40 +231,54 @@ const getAttendanceReport = async (req, res) => {
         const monthNum = Number(month);
         const yearNum = Number(year);
 
-        // 1. Fetch the monthly Attendance document
+        // --- 1. Fetch Person to get their Category (Class/Designation) ---
+        let personRecord;
+        if (entityType === "Student") {
+            personRecord = await db.Student.findById(personId).select('class');
+        } else {
+            personRecord = await db.Staff.findById(personId).select('designation');
+        }
+
+        if (!personRecord) {
+            return res.status(404).json({ success: false, message: "Person record not found." });
+        }
+        const categoryId = entityType === "Student" ? personRecord.class : personRecord.designation;
+
+        // --- 2. Fetch only tasks assigned to this person's category ---
+        const activeTasks = await db.Task.find({
+            type: entityType.toLowerCase(),
+            status: 1,
+            categories: { $in: [categoryId] } // Only get tasks matching this person's category
+        }).select('_id name');
+
+        // 3. Fetch the monthly Attendance document
         const attendanceDoc = await db.Attendance.findOne({
             person: personId,
             entityType: entityType,
             month: monthNum,
             year: yearNum,
         });
-
-        // 2. Fetch the list of active tasks for context (for column headers/dropdown)
-        const activeTasks = await db.Task.find({
-            type: entityType.toLowerCase(), // 'student' or 'staff'
-            status: 1, // Active tasks
-        }).select('_id name');
         
         // Initialize the report structure
         const report = {
             monthlySummary: { 
                 present: 0, absent: 0, leave: 0, halfDay: 0, weekend: 0, holiday: 0, notMarked: 0,
                 // Task summaries will be calculated later
-            },
+},
             dailyRecords: [],
             tasksList: activeTasks.map(t => ({ taskId: t._id.toString(), name: t.name })),
         };
 
-        // If no attendance document exists, return empty data structure with tasks list
+        // If no attendance document exists, return empty structure with the filtered tasks list
         if (!attendanceDoc) {
              return res.status(200).json({ success: true, report });
         }
         
         // Process the attendance document
         const daysInMonth = dayjs(`${yearNum}-${monthNum}-01`).daysInMonth();
-        
+            
         // Initialize task tracking for the monthly summary
-        const taskSummaryMap = new Map(activeTasks.map(t => [t._id.toString(), { done: 0, notDone: 0 }]));
+            const taskSummaryMap = new Map(activeTasks.map(t => [t._id.toString(), { done: 0, notDone: 0 }]));
 
         for (let day = 1; day <= daysInMonth; day++) {
             const dayField = `d${day}`;
@@ -310,8 +333,8 @@ const getAttendanceReport = async (req, res) => {
                 case 5: report.monthlySummary.weekend++; break;
                 case 6: report.monthlySummary.holiday++; break;
                 default: 
-                    report.monthlySummary.notMarked++; 
-                    break;
+                report.monthlySummary.notMarked++;
+                break;
             }
         }
         
